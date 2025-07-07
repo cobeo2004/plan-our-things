@@ -1,0 +1,16 @@
+{
+    "exposeEndpoint": false,
+    "endpointPath": "/schema",
+    "secureEndpoint": true,
+    "tsSchema": {
+        "generateFile": true,
+        "includeDocs": true,
+        "includeSystemCollections": false,
+        "outputPath": "./src/lib/pocketbase/schema/tsSchema.ts"
+    },
+    "zodSchema": {
+        "generateFile": true,
+        "includeSystemCollections": false,
+        "outputPath": "./src/lib/pocketbase/schema/zodSchema.ts"
+    }
+}
