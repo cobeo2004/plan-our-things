@@ -1,17 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Clock, DollarSign, User } from "lucide-react";
+import { Plus, Clock, DollarSign, User, Trophy, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import {
   TripsRecord,
   UsersRecord,
   TimelineItemsResponse,
+  PollOptionsResponse,
 } from "@/types/pocketbase-types";
 import { createBrowserClient } from "@/lib/pocketbase";
 import { CreateTimelineItemModal } from "./CreateTimelineItemModal";
 
 interface TimelineProps {
   trip: TripsRecord;
+}
+
+interface PollData {
+  poll_title: string;
+  poll_description: string;
+  selected_option: string;
+  vote_count: number;
+  poll_results: Record<string, number>;
+}
+
+interface ProcessedTimelineItem extends TimelineItemsResponse {
+  created_by: string;
+  image: string;
+  poll_data?: PollData;
+  poll_options?: Record<string, PollOptionsResponse>;
 }
 
 export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
@@ -28,13 +44,67 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
         expand: "created_by",
         sort: "time",
       });
-      return items.map((item) => ({
-        ...item,
-        image: item.image ? pb.files.getURL(item, item.image) : "",
-        created_by:
-          (item.expand as { created_by: UsersRecord })?.created_by?.name ??
-          "Unknown User",
-      }));
+
+      const processedItems: ProcessedTimelineItem[] = [];
+
+      for (const item of items) {
+        let pollData: PollData | undefined;
+        let pollOptions: Record<string, PollOptionsResponse> | undefined;
+
+        // Check if this item was created from a poll and has poll data
+        if (item.created_from_poll && item.description) {
+          try {
+            // Try to parse the description as JSON poll data
+            const parsed = JSON.parse(item.description);
+            if (
+              parsed.poll_title &&
+              parsed.poll_results &&
+              parsed.selected_option
+            ) {
+              pollData = parsed as PollData;
+
+              // Fetch poll option details for better display
+              const optionIds = Object.keys(pollData.poll_results);
+              if (optionIds.length > 0) {
+                try {
+                  const optionsFilter = optionIds
+                    .map((id) => `id="${id}"`)
+                    .join(" || ");
+                  const options = await pb
+                    .collection("poll_options")
+                    .getFullList({
+                      filter: `(${optionsFilter})`,
+                    });
+
+                  pollOptions = {};
+                  options.forEach((option) => {
+                    pollOptions![option.id] = option;
+                  });
+                } catch (error) {
+                  console.warn("Failed to fetch poll options:", error);
+                }
+              }
+            }
+          } catch (error) {
+            console.warn(
+              "Failed to parse poll data from timeline item:",
+              error
+            );
+          }
+        }
+
+        processedItems.push({
+          ...item,
+          image: item.image ? pb.files.getURL(item, item.image) : "",
+          created_by:
+            (item.expand as { created_by: UsersRecord })?.created_by?.name ??
+            "Unknown User",
+          poll_data: pollData,
+          poll_options: pollOptions,
+        });
+      }
+
+      return processedItems;
     },
     staleTime: 0, // Always refetch to ensure fresh data
     refetchOnMount: true, // Refetch when component mounts
@@ -52,7 +122,7 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
 
           queryClient.setQueriesData(
             { queryKey: ["timeline-items", trip.id] },
-            (oldData: any[]) => {
+            (oldData: ProcessedTimelineItem[]) => {
               if (!oldData) return oldData;
 
               if (e.action === "create") {
@@ -60,14 +130,33 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                 const exists = oldData.some((item) => item.id === e.record.id);
                 if (exists) return oldData;
 
-                // Process the new item
-                const processedItem = {
+                // Process the new item (simplified for real-time updates)
+                const processedItem: ProcessedTimelineItem = {
                   ...e.record,
                   image: e.record.image
                     ? pb.files.getURL(e.record, e.record.image)
                     : "",
                   created_by: "Loading...", // Placeholder while we fetch user data
                 };
+
+                // Try to parse poll data if available
+                if (e.record.created_from_poll && e.record.description) {
+                  try {
+                    const parsed = JSON.parse(e.record.description);
+                    if (
+                      parsed.poll_title &&
+                      parsed.poll_results &&
+                      parsed.selected_option
+                    ) {
+                      processedItem.poll_data = parsed as PollData;
+                    }
+                  } catch (error) {
+                    console.warn(
+                      "Failed to parse poll data in real-time update:",
+                      error
+                    );
+                  }
+                }
 
                 // Fetch user data if missing
                 if (e.record.created_by) {
@@ -76,7 +165,7 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                     .then((userData) => {
                       queryClient.setQueriesData(
                         { queryKey: ["timeline-items", trip.id] },
-                        (currentData: any[]) => {
+                        (currentData: ProcessedTimelineItem[]) => {
                           if (!currentData) return currentData;
                           return currentData.map((item) => {
                             if (item.id === e.record.id) {
@@ -95,7 +184,7 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                       // Update with fallback name if fetch fails
                       queryClient.setQueriesData(
                         { queryKey: ["timeline-items", trip.id] },
-                        (currentData: any[]) => {
+                        (currentData: ProcessedTimelineItem[]) => {
                           if (!currentData) return currentData;
                           return currentData.map((item) => {
                             if (item.id === e.record.id) {
@@ -180,6 +269,102 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
     (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
   );
 
+  const renderPollResults = (item: ProcessedTimelineItem) => {
+    if (!item.poll_data) return null;
+
+    const { poll_data, poll_options } = item;
+    const totalVotes = Object.values(poll_data.poll_results).reduce(
+      (sum, votes) => sum + votes,
+      0
+    );
+
+    return (
+      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+        <div className="flex items-center space-x-2 mb-3">
+          <Trophy className="w-5 h-5 text-yellow-600" />
+          <h5 className="font-semibold text-slate-800">
+            Poll Results: {poll_data.poll_title}
+          </h5>
+        </div>
+
+        {poll_data.poll_description && (
+          <p className="text-slate-600 text-sm mb-3">
+            {poll_data.poll_description}
+          </p>
+        )}
+
+        <div className="space-y-2 mb-4">
+          {Object.entries(poll_data.poll_results).map(([optionId, votes]) => {
+            const option = poll_options?.[optionId];
+            const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+            const isWinner =
+              poll_data.selected_option === (option?.text || optionId);
+
+            return (
+              <div
+                key={optionId}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  isWinner
+                    ? "border-green-500 bg-green-50"
+                    : "border-slate-200 bg-white"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <span
+                      className={`font-medium ${
+                        isWinner ? "text-green-800" : "text-slate-800"
+                      }`}
+                    >
+                      {option?.text || `Option ${optionId.slice(-4)}`}
+                    </span>
+                    {isWinner && <Trophy className="w-4 h-4 text-green-600" />}
+                    {option?.cost && (
+                      <span className="flex items-center space-x-1 text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                        <DollarSign className="w-3 h-3" />
+                        <span>{option.cost}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    className={`text-sm font-medium ${
+                      isWinner ? "text-green-700" : "text-slate-600"
+                    }`}
+                  >
+                    {votes} vote{votes !== 1 ? "s" : ""} (
+                    {percentage.toFixed(0)}%)
+                  </div>
+                </div>
+
+                <div className="w-full bg-slate-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-500 ${
+                      isWinner ? "bg-green-500" : "bg-slate-400"
+                    }`}
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center space-x-2 text-slate-600">
+            <BarChart3 className="w-4 h-4" />
+            <span>
+              {totalVotes} total vote{totalVotes !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="flex items-center space-x-2 text-green-700 font-medium">
+            <Trophy className="w-4 h-4" />
+            <span>Winner: {poll_data.selected_option}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -242,7 +427,11 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                     isUpdating ? "ring-2 ring-blue-200 ring-opacity-50" : ""
                   }`}
                 >
-                  <Clock className="w-6 h-6 text-white" />
+                  {item.created_from_poll ? (
+                    <Trophy className="w-6 h-6 text-white" />
+                  ) : (
+                    <Clock className="w-6 h-6 text-white" />
+                  )}
                 </div>
 
                 {/* Content */}
@@ -278,9 +467,16 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                     )}
                   </div>
 
-                  {item.description && (
-                    <p className="text-slate-600 mb-3">{item.description}</p>
-                  )}
+                  {/* Show poll results for poll-based items */}
+                  {item.created_from_poll && item.poll_data
+                    ? renderPollResults(item)
+                    : // Show regular description for non-poll items
+                      item.description &&
+                      !item.created_from_poll && (
+                        <p className="text-slate-600 mb-3">
+                          {item.description}
+                        </p>
+                      )}
 
                   {item.image && (
                     <img
@@ -297,7 +493,7 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 text-sm text-slate-500">
                       <User className="w-4 h-4" />
-                      <span>Added by {item.created_by}</span>
+                      <span>Created by {item.created_by}</span>
                     </div>
                   </div>
                 </div>

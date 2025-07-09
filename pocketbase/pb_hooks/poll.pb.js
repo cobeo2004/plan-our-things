@@ -1,38 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-
-onRecordAfterCreateSuccess((e) => {
-  try {
-    // Convert end_time to cron expression
-    const endTime = new Date(e.record.get("end_time"));
-    const cronExpression = `${endTime.getMinutes()} ${endTime.getHours()} ${endTime.getDate()} ${
-      endTime.getMonth() + 1
-    } *`;
-
-    cronAdd(`_poll_job_${e.record.get("id")}`, cronExpression, () => {
-      console.log("Cron triggered for poll", e.record.get("id"));
-      try {
-        // Fetch the current poll record to check its status
-        if (e.record.get("status") === "open") {
-          e.record.set("status", "closed");
-          console.log("Set poll to staled", poll.get("id"));
-        }
-      } catch (error) {
-        console.error("Error in cron job for poll", e.record.get("id"), error);
-      }
-    });
-
-    console.log(
-      "Created cron for poll",
-      e.record.get("id"),
-      "with expression:",
-      cronExpression
-    );
-  } catch (error) {
-    console.error("Error creating cron for poll", e.record.get("id"), error);
-  }
-
-  e.next();
-}, "polls");
+"use strict";
 
 onRecordAfterUpdateSuccess((e) => {
   if (
@@ -112,34 +79,11 @@ onRecordAfterUpdateSuccess((e) => {
       // Update poll status to scheduled
       e.record.set("status", "scheduled");
       $app.save(e.record);
-
-      // Remove the cron job since poll is now processed
-      try {
-        cronRemove(`_poll_job_${e.record.get("id")}`);
-        console.log("Removed cron job for poll", e.record.get("id"));
-      } catch (error) {
-        console.error(
-          "Error removing cron job for poll",
-          e.record.get("id"),
-          error
-        );
-      }
     } catch (error) {
       console.error(`Error processing staled poll ${e.record.id}:`, error);
       // Fallback: just set status to closed if there's an error
       e.record.set("status", "closed");
       $app.save(e.record);
-
-      // Remove the cron job
-      try {
-        cronRemove(`_poll_job_${e.record.get("id")}`);
-      } catch (cronError) {
-        console.error(
-          "Error removing cron job for poll",
-          e.record.get("id"),
-          cronError
-        );
-      }
     }
   }
 
