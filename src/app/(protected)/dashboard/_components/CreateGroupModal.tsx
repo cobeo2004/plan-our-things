@@ -64,17 +64,26 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
   const joinMutation = useMutation({
     mutationFn: async (code: string) => {
-      const validatedGroup = await groupMembersSchema.safeParseAsync({
-        group: code,
-        user: pb.authStore.record?.id,
-        role: "member",
-        status: "active",
-      });
-      if (!validatedGroup.success) {
-        console.error(validatedGroup.error);
-        throw new Error(validatedGroup.error.message);
+      try {
+        const response = await fetch("http://127.0.0.1:8090/api/join-group", {
+          method: "POST",
+          body: JSON.stringify({ group_code: code }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${pb.authStore.token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Failed to join group");
+        }
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        return data;
+      } catch (error) {
+        throw new Error("Failed to join group");
       }
-      return await pb.collection("group_members").create(validatedGroup.data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
