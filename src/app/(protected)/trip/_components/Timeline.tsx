@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Clock, DollarSign, User, Trophy, BarChart3 } from "lucide-react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import {
+  Plus,
+  Clock,
+  DollarSign,
+  User,
+  Trophy,
+  BarChart3,
+  Edit3,
+  Trash2,
+  MoreHorizontal,
+} from "lucide-react";
 import { format } from "date-fns";
 import {
   TripsRecord,
@@ -10,6 +20,9 @@ import {
 } from "@/types/pocketbase-types";
 import { createBrowserClient } from "@/lib/pocketbase";
 import { CreateTimelineItemModal } from "./CreateTimelineItemModal";
+import { EditTimelineItemModal } from "./EditTimelineItemModal";
+import { canEditTimelineItem } from "@/lib/utils/permissions";
+import toast from "react-hot-toast";
 
 interface TimelineProps {
   trip: TripsRecord;
@@ -24,7 +37,8 @@ interface PollData {
 }
 
 interface ProcessedTimelineItem extends TimelineItemsResponse {
-  created_by: string;
+  created_by: string; // User name for display
+  created_by_id?: string; // User ID for permission checks
   image: string;
   poll_data?: PollData;
   poll_options?: Record<string, PollOptionsResponse>;
@@ -32,9 +46,14 @@ interface ProcessedTimelineItem extends TimelineItemsResponse {
 
 export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedItem, setSelectedItem] =
+    useState<ProcessedTimelineItem | null>(null);
+  const [showDropdownId, setShowDropdownId] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const pb = createBrowserClient();
   const queryClient = useQueryClient();
+  const user = pb.authStore.record;
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["timeline-items", trip.id],
@@ -99,6 +118,7 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
           created_by:
             (item.expand as { created_by: UsersRecord })?.created_by?.name ??
             "Unknown User",
+          created_by_id: item.created_by, // Keep the original user ID for permission checks
           poll_data: pollData,
           poll_options: pollOptions,
         });
@@ -117,7 +137,6 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
       async (e) => {
         // Only process timeline items for this trip
         if (e.record.trip === trip.id) {
-          console.log("Timeline update:", e);
           setIsUpdating(true);
 
           queryClient.setQueriesData(
@@ -137,6 +156,7 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                     ? pb.files.getURL(e.record, e.record.image)
                     : "",
                   created_by: "Loading...", // Placeholder while we fetch user data
+                  created_by_id: e.record.created_by, // Keep the original user ID for permission checks
                 };
 
                 // Try to parse poll data if available
@@ -217,6 +237,8 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                             ? pb.files.getURL(e.record, e.record.image)
                             : "",
                           created_by: item.created_by, // Keep existing created_by data
+                          created_by_id:
+                            item.created_by_id || e.record.created_by, // Keep existing created_by_id
                         }
                       : item
                   )
@@ -246,6 +268,59 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
       unsubscribeTimeline?.then((unsub) => unsub()).catch(console.error);
     };
   }, [trip.id, queryClient, pb]);
+
+  // Delete timeline item mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      return await pb.collection("timeline_items").delete(itemId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["timeline-items", trip.id] });
+      toast.success("Timeline item deleted successfully!");
+      setShowDropdownId(null);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  // Handle edit click
+  const handleEditItem = (item: ProcessedTimelineItem) => {
+    setSelectedItem(item);
+    setShowEditModal(true);
+    setShowDropdownId(null);
+  };
+
+  // Handle delete click
+  const handleDeleteItem = (item: ProcessedTimelineItem) => {
+    if (!canEditTimelineItem({ created_by: item.created_by_id }, user?.id)) {
+      toast.error("You can only delete your own timeline items");
+      return;
+    }
+
+    const confirmMessage = item.created_from_poll
+      ? "This item was created from a poll. Are you sure you want to delete it?"
+      : "Are you sure you want to delete this timeline item?";
+
+    if (confirm(confirmMessage)) {
+      deleteMutation.mutate(item.id);
+    }
+    setShowDropdownId(null);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Don't close if clicking on the menu button or menu content
+      const target = event.target as Element;
+      if (target.closest("[data-timeline-menu]")) {
+        return;
+      }
+      setShowDropdownId(null);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   if (isLoading) {
     return (
@@ -412,93 +487,157 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
           <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 to-purple-600" />
 
           <div className="space-y-6">
-            {sortedItems.map((item, index) => (
-              <div
-                key={item.id}
-                className="relative flex items-start space-x-4 group"
-              >
-                {/* Timeline dot */}
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-200 ${
-                    item.created_from_poll
-                      ? "bg-gradient-to-r from-green-500 to-blue-600"
-                      : "bg-gradient-to-r from-blue-500 to-purple-600"
-                  } ${
-                    isUpdating ? "ring-2 ring-blue-200 ring-opacity-50" : ""
-                  }`}
-                >
-                  {item.created_from_poll ? (
-                    <Trophy className="w-6 h-6 text-white" />
-                  ) : (
-                    <Clock className="w-6 h-6 text-white" />
-                  )}
-                </div>
+            {sortedItems.map((item, index) => {
+              // Debug permission check
+              const canEdit = user
+                ? canEditTimelineItem(
+                    { created_by: item.created_by_id },
+                    user.id
+                  )
+                : false;
 
-                {/* Content */}
+              return (
                 <div
-                  className={`flex-1 bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 ${
-                    isUpdating ? "ring-1 ring-blue-200" : ""
-                  }`}
+                  key={item.id}
+                  className="relative flex items-start space-x-4 group"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="text-lg font-semibold text-slate-800 mb-1">
-                        {item.title}
-                      </h4>
-                      <div className="flex items-center space-x-4 text-sm text-slate-600">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-4 h-4" />
-                          <span>
-                            {format(new Date(item.time), "MMM d, yyyy h:mm a")}
-                          </span>
-                        </div>
-                        {item.cost !== null && item.cost !== undefined && (
-                          <div className="flex items-center space-x-1">
-                            <DollarSign className="w-4 h-4" />
-                            <span>${item.cost.toFixed(2)}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {item.created_from_poll && (
-                      <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                        From Poll
-                      </div>
+                  {/* Timeline dot */}
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-200 ${
+                      item.created_from_poll
+                        ? "bg-gradient-to-r from-green-500 to-blue-600"
+                        : "bg-gradient-to-r from-blue-500 to-purple-600"
+                    } ${
+                      isUpdating ? "ring-2 ring-blue-200 ring-opacity-50" : ""
+                    }`}
+                  >
+                    {item.created_from_poll ? (
+                      <Trophy className="w-6 h-6 text-white" />
+                    ) : (
+                      <Clock className="w-6 h-6 text-white" />
                     )}
                   </div>
 
-                  {/* Show poll results for poll-based items */}
-                  {item.created_from_poll && item.poll_data
-                    ? renderPollResults(item)
-                    : // Show regular description for non-poll items
-                      item.description &&
-                      !item.created_from_poll && (
-                        <p className="text-slate-600 mb-3">
-                          {item.description}
-                        </p>
+                  {/* Content */}
+                  <div
+                    className={`flex-1 bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 ${
+                      isUpdating ? "ring-1 ring-blue-200" : ""
+                    }`}
+                    style={{ position: "relative", overflow: "visible" }}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="text-lg font-semibold text-slate-800 mb-1">
+                          {item.title}
+                        </h4>
+                        <div className="flex items-center space-x-4 text-sm text-slate-600">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-4 h-4" />
+                            <span>
+                              {format(
+                                new Date(item.time),
+                                "MMM d, yyyy h:mm a"
+                              )}
+                            </span>
+                          </div>
+                          {item.cost !== null && item.cost !== undefined && (
+                            <div className="flex items-center space-x-1">
+                              <DollarSign className="w-4 h-4" />
+                              <span>${item.cost.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {item.created_from_poll && (
+                        <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                          From Poll
+                        </div>
                       )}
+                    </div>
 
-                  {item.image && (
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-48 object-cover rounded-lg mb-3"
-                      onError={(e) => {
-                        // Hide image if it fails to load
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  )}
+                    {/* Show poll results for poll-based items */}
+                    {item.created_from_poll && item.poll_data
+                      ? renderPollResults(item)
+                      : // Show regular description for non-poll items
+                        item.description &&
+                        !item.created_from_poll && (
+                          <p className="text-slate-600 mb-3">
+                            {item.description}
+                          </p>
+                        )}
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-sm text-slate-500">
-                      <User className="w-4 h-4" />
-                      <span>Created by {item.created_by}</span>
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-48 object-cover rounded-lg mb-3"
+                        onError={(e) => {
+                          // Hide image if it fails to load
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-sm text-slate-500">
+                        <User className="w-4 h-4" />
+                        <span>Created by {item.created_by}</span>
+                      </div>
+
+                      {/* Action buttons for users who can edit/delete */}
+                      {user && canEdit && (
+                        <div className="relative" data-timeline-menu>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowDropdownId(
+                                showDropdownId === item.id ? null : item.id
+                              );
+                            }}
+                            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                            title="More actions"
+                            data-timeline-menu
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+
+                          {showDropdownId === item.id && (
+                            <div
+                              className="absolute right-0 top-10 bg-red-50 border-2 border-red-300 rounded-lg shadow-xl py-2 z-50 min-w-[140px]"
+                              onClick={(e) => e.stopPropagation()}
+                              data-timeline-menu
+                            >
+                              <div className="px-3 py-1 text-xs text-slate-500 border-b border-slate-200">
+                                Timeline Actions
+                              </div>
+                              <button
+                                onClick={() => {
+                                  handleEditItem(item);
+                                }}
+                                className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleDeleteItem(item);
+                                }}
+                                disabled={deleteMutation.isPending}
+                                className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Delete</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -508,6 +647,18 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
         onClose={() => setShowCreateModal(false)}
         trip={trip}
       />
+
+      {selectedItem && (
+        <EditTimelineItemModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedItem(null);
+          }}
+          timelineItem={selectedItem}
+          trip={trip}
+        />
+      )}
     </div>
   );
 };

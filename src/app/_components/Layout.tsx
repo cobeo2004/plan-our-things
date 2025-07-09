@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { LogOut, User, Settings, ChevronDown } from "lucide-react";
+import { LogOut, User, Settings, ChevronDown, Users } from "lucide-react";
 import Image from "next/image";
 import { createBrowserClient } from "@/lib/pocketbase";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleChangeUserDetails = () => {
     // Navigate to user profile/settings page
-    router.push("/profile");
+    router.push("/settings/profile");
     setIsDropdownOpen(false);
   };
 
@@ -53,14 +53,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="flex items-center space-x-2"
+            >
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">POT</span>
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Plan Our Things
               </span>
-            </div>
+            </button>
 
             {user && (
               <div className="relative" ref={dropdownRef}>
@@ -101,7 +104,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                               ? pb.files.getURL(user, user.avatar)
                               : "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2"
                           }
-                          alt={user.username}
+                          alt={user.username ?? ""}
                           width={40}
                           height={40}
                           className="w-10 h-10 rounded-full object-cover"
@@ -127,7 +130,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         <Settings className="w-4 h-4 mr-3 text-slate-500" />
                         Your Profile
                       </button>
-
+                      {/* Group and Trip Management */}
+                      <button
+                        onClick={() => router.push("/settings/group")}
+                        className="flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <Users className="w-4 h-4 mr-3 text-slate-500" />
+                        Groups and Trips
+                      </button>
+                      {/* Sign Out Button */}
                       <button
                         onClick={signOut}
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"

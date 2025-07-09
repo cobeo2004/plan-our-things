@@ -73,7 +73,7 @@ export const CreateTimelineItemModal: React.FC<
       created_by: user!.id,
       created_from_poll: false,
     };
-    console.log(formForSubmit);
+    formForSubmit;
     e.preventDefault();
     createMutation.mutate(formForSubmit);
   };

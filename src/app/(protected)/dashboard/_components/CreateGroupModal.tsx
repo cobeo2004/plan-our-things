@@ -4,7 +4,10 @@ import { X, Users, Hash } from "lucide-react";
 import { createBrowserClient } from "@/lib/pocketbase";
 import toast from "react-hot-toast";
 import { z } from "zod";
-import { groupsSchema } from "@/lib/pocketbase/schema/zodSchema";
+import {
+  groupMembersSchema,
+  groupsSchema,
+} from "@/lib/pocketbase/schema/zodSchema";
 
 interface CreateGroupModalProps {
   isOpen: boolean;
@@ -61,12 +64,17 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
   const joinMutation = useMutation({
     mutationFn: async (code: string) => {
-      const validatedGroup = await groupsSchema.safeParseAsync(code);
+      const validatedGroup = await groupMembersSchema.safeParseAsync({
+        group: code,
+        user: pb.authStore.record?.id,
+        role: "member",
+        status: "active",
+      });
       if (!validatedGroup.success) {
         console.error(validatedGroup.error);
         throw new Error(validatedGroup.error.message);
       }
-      return await pb.collection("groups").create(validatedGroup.data);
+      return await pb.collection("group_members").create(validatedGroup.data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
@@ -105,6 +113,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-800">Group</h2>
           <button
+            title="Close"
             onClick={onClose}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
           >

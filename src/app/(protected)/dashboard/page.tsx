@@ -20,7 +20,10 @@ export default function Dashboard() {
 
   const { data: groups = [], isLoading: groupsLoading } = useQuery({
     queryKey: ["groups", pb.authStore.record?.id],
-    queryFn: () => pb.collection("groups").getFullList(),
+    queryFn: () =>
+      pb.collection("groups").getFullList({
+        filter: `created_by="${pb.authStore.record?.id}" || group_members_via_group.user.id="${pb.authStore.record?.id}"`,
+      }),
     enabled: !!pb.authStore.record?.id,
   });
 

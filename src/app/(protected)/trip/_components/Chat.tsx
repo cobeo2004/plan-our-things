@@ -99,8 +99,6 @@ export const Chat: React.FC<ChatProps> = ({ trip }) => {
         // Only process messages for this trip
         if (e.record.trip !== trip.id) return;
 
-        console.log("Chat subscription event:", e);
-
         queryClient.setQueriesData(
           { queryKey: ["chat-messages", trip.id] },
           (oldData: (ChatMessagesRecord & { user: UsersRecord })[]) => {
@@ -366,6 +364,7 @@ export const Chat: React.FC<ChatProps> = ({ trip }) => {
             type="submit"
             disabled={!message.trim() || sendMutation.isPending}
             className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Send message"
           >
             <Send className="w-4 h-4" />
           </button>

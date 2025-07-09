@@ -11,7 +11,7 @@ interface TripCardProps {
 export const TripCard: React.FC<TripCardProps> = ({ trip, onSelect }) => {
   const startDate = new Date(trip.start_date);
   const endDate = new Date(trip.end_date);
-  console.log(trip.cover_image);
+  trip.cover_image;
   return (
     <div
       onClick={() => onSelect(trip)}

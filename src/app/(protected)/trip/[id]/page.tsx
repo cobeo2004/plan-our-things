@@ -44,7 +44,7 @@ export default function TripPage() {
     },
   });
 
-  console.log(trip);
+  trip;
 
   if (isLoading) return <div>Loading...</div>;
 

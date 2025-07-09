@@ -9,6 +9,7 @@ import {
   X,
   Trash2,
   DollarSign,
+  MoreVertical,
 } from "lucide-react";
 import {
   PollsRecord,
@@ -22,6 +23,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 import { z } from "zod";
 import { pollOptionsSchema } from "@/lib/pocketbase/schema/zodSchema";
+import { isUserGroupAdminCached } from "@/lib/utils/permissions";
 
 interface PollCardProps {
   poll: PollsRecord;
@@ -36,6 +38,8 @@ export const PollCard: React.FC<PollCardProps> = ({ poll, trip }) => {
   const [showAddOption, setShowAddOption] = useState(false);
   const [newOptionText, setNewOptionText] = useState("");
   const [newOptionCost, setNewOptionCost] = useState("");
+  const [showPollMenu, setShowPollMenu] = useState(false);
+  const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const pb = createBrowserClient();
   const user = pb.authStore.record;
@@ -80,6 +84,17 @@ export const PollCard: React.FC<PollCardProps> = ({ poll, trip }) => {
     refetchOnMount: true, // Refetch when component mounts
   });
 
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user?.id) {
+        const adminStatus = await isUserGroupAdminCached(trip.id, user.id);
+        setIsUserAdmin(adminStatus);
+      }
+    };
+    checkAdminStatus();
+  }, [user?.id, trip.id]);
+
   // Refetch data when component first mounts to ensure we have the latest data
   useEffect(() => {
     // Small delay to ensure any pending writes are completed
@@ -99,7 +114,6 @@ export const PollCard: React.FC<PollCardProps> = ({ poll, trip }) => {
       (e) => {
         // Only process options for this poll
         if (e.record.poll === poll.id) {
-          console.log("Poll options update:", e);
           setIsUpdating(true);
 
           queryClient.setQueriesData(
@@ -190,7 +204,6 @@ export const PollCard: React.FC<PollCardProps> = ({ poll, trip }) => {
               .collection("poll_options")
               .getOne(e.record.option);
             if (option.poll === poll.id) {
-              console.log("Poll votes update:", e);
               setIsUpdating(true);
 
               queryClient.setQueriesData(
@@ -232,7 +245,6 @@ export const PollCard: React.FC<PollCardProps> = ({ poll, trip }) => {
 
     // Subscribe to poll status changes
     const unsubscribePolls = pb.collection("polls").subscribe(poll.id, (e) => {
-      console.log("Poll update:", e);
       if (e.action === "update") {
         setIsUpdating(true);
         // Invalidate poll data in parent component
@@ -408,6 +420,21 @@ export const PollCard: React.FC<PollCardProps> = ({ poll, trip }) => {
     },
   });
 
+  const deletePollMutation = useMutation({
+    mutationFn: async (pollId: string) => {
+      return await pb.collection("polls").delete(pollId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["polls", trip.id] });
+      toast.success("Poll deleted successfully!");
+      setShowPollMenu(false);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+      setShowPollMenu(false);
+    },
+  });
+
   const handleVote = (optionId: string) => {
     if (!user) {
       toast.error("Please log in to vote");
@@ -483,6 +510,36 @@ export const PollCard: React.FC<PollCardProps> = ({ poll, trip }) => {
 
     deleteOptionMutation.mutate(optionId);
   };
+
+  const handleDeletePoll = () => {
+    if (!user || !isUserAdmin) {
+      toast.error("Only group admins can delete polls");
+      return;
+    }
+
+    const hasVotes = totalVotes > 0;
+    const confirmMessage = hasVotes
+      ? `This poll has ${totalVotes} vote(s). Deleting it will also remove all votes and options. Are you sure?`
+      : "Are you sure you want to delete this poll? This action cannot be undone.";
+
+    if (confirm(confirmMessage)) {
+      deletePollMutation.mutate(poll.id);
+    }
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Don't close if clicking on the menu button or menu content
+      const target = event.target as Element;
+      if (target.closest("[data-poll-menu]")) {
+        return;
+      }
+      setShowPollMenu(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const isActive = poll.status === "open";
   const endTime = new Date(poll.end_time);
@@ -572,6 +629,40 @@ export const PollCard: React.FC<PollCardProps> = ({ poll, trip }) => {
               className="w-2 h-2 bg-green-500 rounded-full animate-pulse"
               title="Real-time updates enabled"
             ></div>
+          )}
+
+          {/* Admin delete poll button */}
+          {user && isUserAdmin && (
+            <div className="relative" data-poll-menu>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPollMenu(!showPollMenu);
+                }}
+                className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                title="Poll actions"
+                data-poll-menu
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+
+              {showPollMenu && (
+                <div
+                  className="absolute right-0 top-8 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 min-w-[140px]"
+                  onClick={(e) => e.stopPropagation()}
+                  data-poll-menu
+                >
+                  <button
+                    onClick={handleDeletePoll}
+                    disabled={deletePollMutation.isPending}
+                    className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete Poll</span>
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

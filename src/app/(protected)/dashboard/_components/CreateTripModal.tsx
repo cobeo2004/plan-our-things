@@ -121,6 +121,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-800">Create New Trip</h2>
           <button
+            title="Close the create trip modal"
             onClick={onClose}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
           >
@@ -154,6 +155,8 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
               <div className="relative">
                 <Calendar className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input
+                  title="Select the start date of your trip"
+                  placeholder="Select the start date of your trip"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
@@ -170,6 +173,8 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
               <div className="relative">
                 <Calendar className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input
+                  title="Select the end date of your trip"
+                  placeholder="Select the end date of your trip"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
@@ -187,6 +192,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
             <div className="relative">
               <Upload className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
               <input
+                title="Upload a cover image for your trip"
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
