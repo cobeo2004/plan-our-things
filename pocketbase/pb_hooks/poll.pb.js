@@ -89,19 +89,3 @@ onRecordAfterUpdateSuccess((e) => {
 
   e.next();
 }, "polls");
-
-// Handle poll deletion - clean up cron jobs
-onRecordAfterDeleteSuccess((e) => {
-  try {
-    cronRemove(`_poll_job_${e.record.get("id")}`);
-    console.log("Removed cron job for deleted poll", e.record.get("id"));
-  } catch (error) {
-    console.error(
-      "Error removing cron job for deleted poll",
-      e.record.get("id"),
-      error
-    );
-  }
-
-  e.next();
-}, "polls");

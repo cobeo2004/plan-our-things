@@ -48,7 +48,7 @@ export async function register({
   try {
     await client
       .collection("users")
-      .create({ email, username, password, passwordConfirm });
+      .create({ email, name: username, password, passwordConfirm });
     await client.collection("users").authWithPassword(email, password);
   } catch (e) {
     // TODO: Handle error

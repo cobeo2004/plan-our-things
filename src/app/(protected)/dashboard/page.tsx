@@ -27,6 +27,8 @@ export default function Dashboard() {
     enabled: !!pb.authStore.record?.id,
   });
 
+  console.log(groups);
+
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["trips", selectedGroup?.id],
     queryFn: async () => {
