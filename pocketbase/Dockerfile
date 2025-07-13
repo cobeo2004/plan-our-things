@@ -1,22 +1,15 @@
-FROM alpine:latest
+FROM golang:1.23-alpine
 
-ARG PB_VERSION=0.28.4
+WORKDIR /pb
 
-RUN apk add --no-cache \
-    unzip \
-    ca-certificates
+COPY . .
 
-# download and unzip PocketBase
-ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
-RUN unzip /tmp/pb.zip -d /pb/
+RUN go mod tidy
 
-# uncomment to copy the local pb_migrations dir into the image
-COPY ./pb_migrations /pb/pb_migrations
+RUN CGO_ENABLED=1 go build -o /pb/pocketbase
 
-# uncomment to copy the local pb_hooks dir into the image
-COPY ./pb_hooks /pb/pb_hooks
+EXPOSE 8090
 
-EXPOSE 8080
+ENV GOMEMLIMIT=500MiB
 
-# start PocketBase
 CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8080"]
