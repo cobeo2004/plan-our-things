@@ -17,7 +17,6 @@ export default function Dashboard() {
   const [showCreateTripModal, setShowCreateTripModal] = useState(false);
   const pb = createBrowserClient();
   const router = useRouter();
-
   const { data: groups = [], isLoading: groupsLoading } = useQuery({
     queryKey: ["groups", pb.authStore.record?.id],
     queryFn: () =>
@@ -26,8 +25,6 @@ export default function Dashboard() {
       }),
     enabled: !!pb.authStore.record?.id,
   });
-
-  console.log(groups);
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["trips", selectedGroup?.id],

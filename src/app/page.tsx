@@ -6,6 +6,5 @@ export default async function Home() {
   if (user === null || user === undefined) {
     redirect("/login");
   }
-  user;
   redirect("/dashboard");
 }
