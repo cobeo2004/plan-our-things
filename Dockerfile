@@ -3,7 +3,6 @@ FROM --platform=linux/amd64 node:20-alpine AS base
 FROM base as deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY prisma/ /app/prisma/
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 RUN npm ci --legacy-peer-deps
 
