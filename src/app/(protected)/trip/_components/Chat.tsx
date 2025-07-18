@@ -14,6 +14,7 @@ import {
 import { createBrowserClient } from "@/lib/pocketbase/client";
 import { chatMessagesSchema } from "@/lib/pocketbase/schema/zodSchema";
 import z from "zod";
+import Image from "next/image";
 
 interface ChatProps {
   trip: TripsRecord;
@@ -304,7 +305,7 @@ export const Chat: React.FC<ChatProps> = ({ trip }) => {
                     isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
                   }`}
                 >
-                  <img
+                  <Image
                     src={
                       msg.user.avatar
                         ? pb.files.getURL(msg.user, msg.user.avatar)

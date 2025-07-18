@@ -8,6 +8,7 @@ import { createBrowserClient } from "@/lib/pocketbase";
 import { timelineItemsSchema } from "@/lib/pocketbase/schema/zodSchema";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import Image from "next/image";
 
 interface ProcessedTimelineItem extends TimelineItemsResponse {
   created_by: string; // User name for display
@@ -318,7 +319,7 @@ export const EditTimelineItemModal: React.FC<EditTimelineItemModalProps> = ({
             {/* Current/Preview Image */}
             {previewUrl && (
               <div className="mb-4 relative">
-                <img
+                <Image
                   src={previewUrl}
                   alt="Timeline item preview"
                   className="w-full h-48 object-cover rounded-lg"

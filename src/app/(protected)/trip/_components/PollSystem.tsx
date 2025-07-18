@@ -29,7 +29,6 @@ export const PollSystem: React.FC<PollSystemProps> = ({ trip }) => {
     const unsubscribePolls = pb.collection("polls").subscribe("*", (e) => {
       // Only process polls for this trip
       if (e.record.trip === trip.id) {
-        "Polls update:", e;
 
         queryClient.setQueriesData(
           { queryKey: ["polls", trip.id] },

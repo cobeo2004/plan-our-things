@@ -10,6 +10,7 @@ import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface TripManagementCardProps {
   trip: TripsResponse & { cover_image?: string };
@@ -140,7 +141,7 @@ export const TripManagementCard: React.FC<TripManagementCardProps> = ({
       <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 group">
         {/* Trip Cover Image */}
         <div className="relative h-48 overflow-hidden">
-          <img
+          <Image
             src={
               trip.cover_image ||
               "https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg?auto=compress&cs=tinysrgb&w=800"

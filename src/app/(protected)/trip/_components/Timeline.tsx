@@ -23,6 +23,7 @@ import { CreateTimelineItemModal } from "./CreateTimelineItemModal";
 import { EditTimelineItemModal } from "./EditTimelineItemModal";
 import { canEditTimelineItem } from "@/lib/utils/permissions";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface TimelineProps {
   trip: TripsRecord;
@@ -567,7 +568,7 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                         )}
 
                     {item.image && (
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.title}
                         className="w-full h-48 object-cover rounded-lg mb-3"

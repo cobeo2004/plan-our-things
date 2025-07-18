@@ -19,6 +19,7 @@ import {
 import { createBrowserClient } from "@/lib/pocketbase";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface MembersManagementProps {
   group: GroupsResponse;
@@ -235,7 +236,7 @@ export const MembersManagement: React.FC<MembersManagementProps> = ({
                     {/* Avatar */}
                     <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                       {member.expand.user.avatar ? (
-                        <img
+                        <Image
                           src={pb.files.getURL(
                             member,
                             member.expand.user.avatar

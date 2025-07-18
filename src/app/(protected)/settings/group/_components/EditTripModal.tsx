@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { X, Calendar, MapPin, Upload, Image } from "lucide-react";
+import { X, Calendar, MapPin, Upload } from "lucide-react";
 import { TripsResponse, GroupsResponse } from "@/types/pocketbase-types";
 import { createBrowserClient } from "@/lib/pocketbase";
-import { tripsSchema } from "@/lib/pocketbase/schema/zodSchema";
 import toast from "react-hot-toast";
-import { z } from "zod";
+import Image from "next/image";
 
 interface EditTripModalProps {
   isOpen: boolean;
@@ -275,7 +274,7 @@ export const EditTripModal: React.FC<EditTripModalProps> = ({
             {/* Current/Preview Image */}
             {previewUrl && (
               <div className="mb-4 relative">
-                <img
+                <Image
                   src={previewUrl}
                   alt="Cover preview"
                   className="w-full h-48 object-cover rounded-lg"

@@ -2,6 +2,7 @@ import React from "react";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { TripsRecord } from "@/types/pocketbase-types";
 import { format } from "date-fns";
+import Image from "next/image";
 
 interface TripCardProps {
   trip: TripsRecord;
@@ -18,7 +19,7 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onSelect }) => {
       className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
     >
       <div className="relative h-48 overflow-hidden">
-        <img
+        <Image
           src={
             trip.cover_image ||
             "https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg?auto=compress&cs=tinysrgb&w=800"

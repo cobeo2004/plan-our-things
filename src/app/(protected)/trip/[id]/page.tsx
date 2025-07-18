@@ -19,13 +19,10 @@ import { TripsRecord } from "@/types/pocketbase-types";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 
-interface TripPageProps {
-  tripId: string;
-}
-
 export default function TripPage() {
-  const { id } = useParams();
   const pb = createBrowserClient();
+  const { id } = useParams();
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<"timeline" | "polls" | "chat">(
     "timeline"
@@ -44,8 +41,6 @@ export default function TripPage() {
     },
   });
 
-  trip;
-
   if (isLoading) return <div>Loading...</div>;
 
   // In a real app, you'd fetch the specific trip
@@ -62,7 +57,6 @@ export default function TripPage() {
 
   const startDate = new Date(trip?.start_date || "");
   const endDate = new Date(trip?.end_date || "");
-  const router = useRouter();
   const handleBackToDashboard = () => {
     router.back();
   };
