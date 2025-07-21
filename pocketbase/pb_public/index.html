@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Địt mẹ mày thằng đầu buồi! 🖕</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Creepster&display=swap");
+      body {
+        font-family: "Comic Neue", cursive;
+      }
+      .troll-title {
+        font-family: "Creepster", cursive;
+      }
+      .bounce {
+        animation: bounce 2s infinite;
+      }
+      .wiggle {
+        animation: wiggle 1s ease-in-out infinite;
+      }
+      @keyframes wiggle {
+        0%,
+        7% {
+          transform: rotateZ(0);
+        }
+        15% {
+          transform: rotateZ(-15deg);
+        }
+        20% {
+          transform: rotateZ(10deg);
+        }
+        25% {
+          transform: rotateZ(-10deg);
+        }
+        30% {
+          transform: rotateZ(6deg);
+        }
+        35% {
+          transform: rotateZ(-4deg);
+        }
+        40%,
+        100% {
+          transform: rotateZ(0);
+        }
+      }
+      .rainbow-text {
+        background: linear-gradient(
+          45deg,
+          #ff0000,
+          #ff7700,
+          #ffaa00,
+          #00ff00,
+          #0099ff,
+          #6600ff
+        );
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: rainbow 2s linear infinite;
+      }
+      @keyframes rainbow {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      .flash {
+        animation: flash 0.5s infinite;
+      }
+      @keyframes flash {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 flex items-center justify-center p-4"
+  >
+    <div class="max-w-md w-full">
+      <div
+        class="bg-black rounded-2xl shadow-2xl border-4 border-red-500 p-8 text-center relative overflow-hidden transform rotate-2"
+      >
+        <!-- Decorative background elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 flash"
+        ></div>
+        <div
+          class="absolute -top-10 -right-10 w-20 h-20 bg-red-500 rounded-full opacity-70 wiggle"
+        ></div>
+        <div
+          class="absolute -bottom-5 -left-5 w-16 h-16 bg-orange-500 rounded-full opacity-50 bounce"
+        ></div>
+
+        <!-- Angry face icon -->
+        <div class="relative z-10 mb-6">
+          <div
+            class="mx-auto w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center wiggle"
+          >
+            <span class="text-4xl">😡</span>
+          </div>
+        </div>
+
+        <!-- Message -->
+        <div class="relative z-10">
+          <h1
+            class="text-3xl font-bold text-red-500 mb-4 troll-title rainbow-text flash"
+          >
+            ĐỊT MẸ MÀY!
+          </h1>
+          <p class="text-2xl font-bold text-orange-400 mb-6 wiggle">
+            THẰNG ĐẦU BUỒI! 🖕😠🖕
+          </p>
+          <div class="text-red-400 text-xl mb-4 font-bold flash">
+            🔥 MÀY CÚT ĐI CHỖ KHÁC! 🔥
+          </div>
+          <div class="text-orange-300 text-lg mb-6 font-semibold wiggle">
+            ⚡ HẸ HẸ HẸ ANH EM 36 LÊN PHÍM URA! ⚡
+          </div>
+          <div class="text-yellow-300 text-base mb-8 font-bold">
+            🎯 KHÔNG CÓ GÌ CHO MÀY Ở ĐÂY CẢ! 🎯
+          </div>
+
+          <!-- Angry buttons -->
+          <div class="space-y-3">
+            <button
+              onclick="alert('CÚT ĐI THẰNG NGU! MÀY VẪN CHƯA HIỂU SAO? 🤬')"
+              class="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg bounce"
+            >
+              🤬 Click để bị chửi tiếp!
+            </button>
+            <button
+              onclick="window.history.back()"
+              class="w-full bg-gradient-to-r from-orange-600 to-yellow-600 hover:from-orange-700 hover:to-yellow-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+            >
+              😰 Tao sợ rồi, cho tao đi!
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="text-center mt-6 text-red-300 text-sm font-bold flash">
+        <p>🔥 © 2025 - ĐỊT MẸ MÀY ACADEMY | ANH EM 36 ZONE! 🔥</p>
+      </div>
+    </div>
+
+    <script>
+      // Easter egg: Aggressive messages
+      const aggressivePhrases = [
+        "🔥 ĐỊT MẸ MÀY THẰNG ĐẦU BUỒI! 🔥",
+        "🖕 CÚT ĐI CHỖ KHÁC! 🖕",
+        "😡 ANH EM 36 LÊN PHÍM URA! 😡",
+        "🤬 MÀY ĐANG LÀM GÌ Ở ĐÂY? 🤬",
+      ];
+
+      setTimeout(() => {
+        const randomPhrase =
+          aggressivePhrases[
+            Math.floor(Math.random() * aggressivePhrases.length)
+          ];
+        console.log(randomPhrase);
+        alert(randomPhrase);
+      }, 1000);
+
+      // Auto-insult every 5 seconds
+      setInterval(() => {
+        const randomPhrase =
+          aggressivePhrases[
+            Math.floor(Math.random() * aggressivePhrases.length)
+          ];
+        console.log(randomPhrase);
+      }, 5000);
+    </script>
+  </body>
+</html>
