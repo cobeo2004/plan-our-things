@@ -276,6 +276,8 @@ export const EditTripModal: React.FC<EditTripModalProps> = ({
               <div className="mb-4 relative">
                 <Image
                   src={previewUrl}
+                  width={100}
+                  height={100}
                   alt="Cover preview"
                   className="w-full h-48 object-cover rounded-lg"
                 />

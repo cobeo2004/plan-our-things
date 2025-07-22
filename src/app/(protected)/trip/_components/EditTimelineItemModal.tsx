@@ -323,6 +323,8 @@ export const EditTimelineItemModal: React.FC<EditTimelineItemModalProps> = ({
                   src={previewUrl}
                   alt="Timeline item preview"
                   className="w-full h-48 object-cover rounded-lg"
+                  width={100}
+                  height={100}
                 />
                 <button
                   type="button"

@@ -241,6 +241,8 @@ export const MembersManagement: React.FC<MembersManagementProps> = ({
                             member,
                             member.expand.user.avatar
                           )}
+                          width={100}
+                          height={100}
                           alt={
                             member.expand.user.name || member.expand.user.email
                           }

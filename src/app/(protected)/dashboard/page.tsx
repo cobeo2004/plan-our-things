@@ -22,6 +22,7 @@ export default function Dashboard() {
     queryFn: () =>
       pb.collection("groups").getFullList({
         filter: `created_by="${pb.authStore.record?.id}" || group_members_via_group.user.id="${pb.authStore.record?.id}"`,
+        expand: "trips_via_group",
       }),
     enabled: !!pb.authStore.record?.id,
   });
@@ -121,7 +122,9 @@ export default function Dashboard() {
                   <GroupCard
                     key={group.id}
                     group={group}
-                    tripCount={0} // This would come from a separate query in real app
+                    tripCount={
+                      (group.expand as any).trips_via_group?.length ?? 0
+                    }
                     onSelect={handleGroupSelect}
                   />
                 ))}

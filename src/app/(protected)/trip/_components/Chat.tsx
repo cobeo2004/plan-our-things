@@ -313,6 +313,8 @@ export const Chat: React.FC<ChatProps> = ({ trip }) => {
                     }
                     alt={msg.user.name || "User"}
                     className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    width={100}
+                    height={100}
                   />
                   <div
                     className={`flex flex-col ${

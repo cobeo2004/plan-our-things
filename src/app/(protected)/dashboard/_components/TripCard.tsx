@@ -25,6 +25,8 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onSelect }) => {
             "https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg?auto=compress&cs=tinysrgb&w=800"
           }
           alt={trip.title}
+          width={100}
+          height={100}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />

@@ -572,6 +572,8 @@ export const Timeline: React.FC<TimelineProps> = ({ trip }) => {
                         src={item.image}
                         alt={item.title}
                         className="w-full h-48 object-cover rounded-lg mb-3"
+                        width={100}
+                        height={100}
                         onError={(e) => {
                           // Hide image if it fails to load
                           e.currentTarget.style.display = "none";
