@@ -38,3 +38,4 @@ next-env.d.ts
 pocketbase/pb_data/
 
 types/pocketbase-types.ts
+**run_pb.sh

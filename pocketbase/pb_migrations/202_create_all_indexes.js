@@ -6,10 +6,10 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
-          "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''",
-          "CREATE INDEX `idx_name_users` ON `users` (`name`);",
-          "CREATE INDEX `idx_created_users` ON `users` (`created`);",
+          "CREATE UNIQUE INDEX idx_tokenKey__pb_users_auth_ ON users (tokenKey)",
+          "CREATE UNIQUE INDEX idx_email__pb_users_auth_ ON users (email) WHERE email IS NOT NULL AND email <> ''",
+          "CREATE INDEX idx_name_users ON users (name)",
+          "CREATE INDEX idx_created_users ON users (created)",
         ],
       },
       usersCollection
@@ -20,10 +20,10 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE UNIQUE INDEX `idx_groups_code` ON `groups` (`code`)",
-          "CREATE INDEX `idx_groups_name` ON `groups` (`name`)",
-          "CREATE INDEX `idx_groups_created_by` ON `groups` (`created_by`)",
-          "CREATE INDEX `idx_groups_created` ON `groups` (`created`)",
+          "CREATE UNIQUE INDEX idx_groups_code ON groups (code)",
+          "CREATE INDEX idx_groups_name ON groups (name)",
+          "CREATE INDEX idx_groups_created_by ON groups (created_by)",
+          "CREATE INDEX idx_groups_created ON groups (created)",
         ],
       },
       groupsCollection
@@ -35,13 +35,13 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE UNIQUE INDEX `idx_group_members_group_user` ON `group_members` (\n  `group`,\n  `user`\n)",
-          "CREATE INDEX `idx_group_members_user` ON `group_members` (`user`)",
-          "CREATE INDEX `idx_group_members_group` ON `group_members` (`group`)",
-          "CREATE INDEX `idx_group_members_role` ON `group_members` (`role`)",
-          "CREATE INDEX `idx_group_members_user_group_role` ON `group_members` (\n  `user`,\n  `group`,\n  `role`\n)",
-          "CREATE INDEX `idx_group_members_group_role` ON `group_members` (\n  `group`,\n  `role`\n)",
-          "CREATE INDEX `idx_group_members_created` ON `group_members` (`created`)",
+          'CREATE UNIQUE INDEX idx_group_members_group_user ON group_members ("group", "user")',
+          'CREATE INDEX idx_group_members_user ON group_members ("user")',
+          'CREATE INDEX idx_group_members_group ON group_members ("group")',
+          "CREATE INDEX idx_group_members_role ON group_members (role)",
+          'CREATE INDEX idx_group_members_user_group_role ON group_members ("user", "group", role)',
+          'CREATE INDEX idx_group_members_group_role ON group_members ("group", role)',
+          "CREATE INDEX idx_group_members_created ON group_members (created)",
         ],
       },
       groupMembersCollection
@@ -52,14 +52,14 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE INDEX `idx_trips_group` ON `trips` (`group`)",
-          "CREATE INDEX `idx_trips_created_by` ON `trips` (`created_by`)",
-          "CREATE INDEX `idx_trips_start_date` ON `trips` (`start_date`)",
-          "CREATE INDEX `idx_trips_end_date` ON `trips` (`end_date`)",
-          "CREATE INDEX `idx_trips_group_start_date` ON `trips` (\n  `group`,\n  `start_date`\n)",
-          "CREATE INDEX `idx_trips_group_created_by` ON `trips` (\n  `group`,\n  `created_by`\n)",
-          "CREATE INDEX `idx_trips_title` ON `trips` (`title`)",
-          "CREATE INDEX `idx_trips_created` ON `trips` (`created`)",
+          'CREATE INDEX idx_trips_group ON trips ("group")',
+          "CREATE INDEX idx_trips_created_by ON trips (created_by)",
+          "CREATE INDEX idx_trips_start_date ON trips (start_date)",
+          "CREATE INDEX idx_trips_end_date ON trips (end_date)",
+          'CREATE INDEX idx_trips_group_start_date ON trips ("group", start_date)',
+          'CREATE INDEX idx_trips_group_created_by ON trips ("group", created_by)',
+          "CREATE INDEX idx_trips_title ON trips (title)",
+          "CREATE INDEX idx_trips_created ON trips (created)",
         ],
       },
       tripsCollection
@@ -71,16 +71,16 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE INDEX `idx_timeline_items_trip` ON `timeline_items` (`trip`)",
-          "CREATE INDEX `idx_timeline_items_created_by` ON `timeline_items` (`created_by`)",
-          "CREATE INDEX `idx_timeline_items_time` ON `timeline_items` (`time`)",
-          "CREATE INDEX `idx_timeline_items_created_from_poll` ON `timeline_items` (`created_from_poll`)",
-          "CREATE INDEX `idx_timeline_items_trip_time` ON `timeline_items` (\n  `trip`,\n  `time`\n)",
-          "CREATE INDEX `idx_timeline_items_trip_created_by` ON `timeline_items` (\n  `trip`,\n  `created_by`\n)",
-          "CREATE INDEX `idx_timeline_items_trip_created_from_poll` ON `timeline_items` (\n  `trip`,\n  `created_from_poll`\n)",
-          "CREATE INDEX `idx_timeline_items_title` ON `timeline_items` (`title`)",
-          "CREATE INDEX `idx_timeline_items_cost` ON `timeline_items` (`cost`)",
-          "CREATE INDEX `idx_timeline_items_created` ON `timeline_items` (`created`)",
+          "CREATE INDEX idx_timeline_items_trip ON timeline_items (trip)",
+          "CREATE INDEX idx_timeline_items_created_by ON timeline_items (created_by)",
+          'CREATE INDEX idx_timeline_items_time ON timeline_items ("time")',
+          "CREATE INDEX idx_timeline_items_created_from_poll ON timeline_items (created_from_poll)",
+          'CREATE INDEX idx_timeline_items_trip_time ON timeline_items (trip, "time")',
+          "CREATE INDEX idx_timeline_items_trip_created_by ON timeline_items (trip, created_by)",
+          "CREATE INDEX idx_timeline_items_trip_created_from_poll ON timeline_items (trip, created_from_poll)",
+          "CREATE INDEX idx_timeline_items_title ON timeline_items (title)",
+          "CREATE INDEX idx_timeline_items_cost ON timeline_items (cost)",
+          "CREATE INDEX idx_timeline_items_created ON timeline_items (created)",
         ],
       },
       timelineItemsCollection
@@ -91,17 +91,17 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE INDEX `idx_polls_trip` ON `polls` (`trip`)",
-          "CREATE INDEX `idx_polls_created_by` ON `polls` (`created_by`)",
-          "CREATE INDEX `idx_polls_status` ON `polls` (`status`)",
-          "CREATE INDEX `idx_polls_start_time` ON `polls` (`start_time`)",
-          "CREATE INDEX `idx_polls_end_time` ON `polls` (`end_time`)",
-          "CREATE INDEX `idx_polls_target_time_slot` ON `polls` (`target_time_slot`)",
-          "CREATE INDEX `idx_polls_trip_status` ON `polls` (\n  `trip`,\n  `status`\n)",
-          "CREATE INDEX `idx_polls_trip_created_by` ON `polls` (\n  `trip`,\n  `created_by`\n)",
-          "CREATE INDEX `idx_polls_status_end_time` ON `polls` (\n  `status`,\n  `end_time`\n)",
-          "CREATE INDEX `idx_polls_title` ON `polls` (`title`)",
-          "CREATE INDEX `idx_polls_created` ON `polls` (`created`)",
+          "CREATE INDEX idx_polls_trip ON polls (trip)",
+          "CREATE INDEX idx_polls_created_by ON polls (created_by)",
+          "CREATE INDEX idx_polls_status ON polls (status)",
+          "CREATE INDEX idx_polls_start_time ON polls (start_time)",
+          "CREATE INDEX idx_polls_end_time ON polls (end_time)",
+          "CREATE INDEX idx_polls_target_time_slot ON polls (target_time_slot)",
+          "CREATE INDEX idx_polls_trip_status ON polls (trip, status)",
+          "CREATE INDEX idx_polls_trip_created_by ON polls (trip, created_by)",
+          "CREATE INDEX idx_polls_status_end_time ON polls (status, end_time)",
+          "CREATE INDEX idx_polls_title ON polls (title)",
+          "CREATE INDEX idx_polls_created ON polls (created)",
         ],
       },
       pollsCollection
@@ -113,11 +113,11 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE INDEX `idx_poll_options_poll` ON `poll_options` (`poll`)",
-          "CREATE INDEX `idx_poll_options_submitted_by` ON `poll_options` (`submitted_by`)",
-          "CREATE INDEX `idx_poll_options_poll_submitted_by` ON `poll_options` (\n  `poll`,\n  `submitted_by`\n)",
-          "CREATE INDEX `idx_poll_options_text` ON `poll_options` (`text`)",
-          "CREATE INDEX `idx_poll_options_created` ON `poll_options` (`created`)",
+          "CREATE INDEX idx_poll_options_poll ON poll_options (poll)",
+          "CREATE INDEX idx_poll_options_submitted_by ON poll_options (submitted_by)",
+          "CREATE INDEX idx_poll_options_poll_submitted_by ON poll_options (poll, submitted_by)",
+          'CREATE INDEX idx_poll_options_text ON poll_options ("text")',
+          "CREATE INDEX idx_poll_options_created ON poll_options (created)",
         ],
       },
       pollOptionsCollection
@@ -128,13 +128,13 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE INDEX `idx_poll_votes_option_user` ON `poll_votes` (\n  `option`,\n  `user`\n)",
-          "CREATE INDEX `idx_poll_votes_option` ON `poll_votes` (`option`)",
-          "CREATE INDEX `idx_poll_votes_user` ON `poll_votes` (`user`)",
-          "CREATE INDEX `idx_poll_votes_voted_at` ON `poll_votes` (`voted_at`)",
-          "CREATE INDEX `idx_poll_votes_option_voted_at` ON `poll_votes` (\n  `option`,\n  `voted_at`\n)",
-          "CREATE INDEX `idx_poll_votes_user_voted_at` ON `poll_votes` (\n  `user`,\n  `voted_at`\n)",
-          "CREATE INDEX `idx_poll_votes_created` ON `poll_votes` (`created`)",
+          'CREATE INDEX idx_poll_votes_option_user ON poll_votes ("option", "user")',
+          'CREATE INDEX idx_poll_votes_option ON poll_votes ("option")',
+          'CREATE INDEX idx_poll_votes_user ON poll_votes ("user")',
+          "CREATE INDEX idx_poll_votes_voted_at ON poll_votes (voted_at)",
+          'CREATE INDEX idx_poll_votes_option_voted_at ON poll_votes ("option", voted_at)',
+          'CREATE INDEX idx_poll_votes_user_voted_at ON poll_votes ("user", voted_at)',
+          "CREATE INDEX idx_poll_votes_created ON poll_votes (created)",
         ],
       },
       pollVotesCollection
@@ -146,14 +146,14 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE INDEX `idx_chat_messages_trip` ON `chat_messages` (`trip`)",
-          "CREATE INDEX `idx_chat_messages_user` ON `chat_messages` (`user`)",
-          "CREATE INDEX `idx_chat_messages_created` ON `chat_messages` (`created`)",
-          "CREATE INDEX `idx_chat_messages_trip_created` ON `chat_messages` (\n  `trip`,\n  `created`\n)",
-          "CREATE INDEX `idx_chat_messages_trip_user` ON `chat_messages` (\n  `trip`,\n  `user`\n)",
-          "CREATE INDEX `idx_chat_messages_user_created` ON `chat_messages` (\n  `user`,\n  `created`\n)",
-          "CREATE INDEX `idx_chat_messages_text` ON `chat_messages` (`text`)",
-          "CREATE INDEX `idx_chat_messages_updated` ON `chat_messages` (`updated`)",
+          "CREATE INDEX idx_chat_messages_trip ON chat_messages (trip)",
+          'CREATE INDEX idx_chat_messages_user ON chat_messages ("user")',
+          "CREATE INDEX idx_chat_messages_created ON chat_messages (created)",
+          "CREATE INDEX idx_chat_messages_trip_created ON chat_messages (trip, created)",
+          'CREATE INDEX idx_chat_messages_trip_user ON chat_messages (trip, "user")',
+          'CREATE INDEX idx_chat_messages_user_created ON chat_messages ("user", created)',
+          'CREATE INDEX idx_chat_messages_text ON chat_messages ("text")',
+          "CREATE INDEX idx_chat_messages_updated ON chat_messages (updated)",
         ],
       },
       chatMessagesCollection
@@ -180,8 +180,8 @@ migrate(
     unmarshal(
       {
         indexes: [
-          "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
-          "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''",
+          "CREATE UNIQUE INDEX idx_tokenKey__pb_users_auth_ ON users (tokenKey)",
+          "CREATE UNIQUE INDEX idx_email__pb_users_auth_ ON users (email) WHERE email IS NOT NULL AND email <> ''",
         ],
       },
       usersCollection

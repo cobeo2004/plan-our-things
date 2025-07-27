@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "run-p dev:*",
     "dev:web": "next dev",
-    "dev:pb": "./pocketbase/pocketbase serve --dev",
+    "dev:pb": "./run_pb.sh",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

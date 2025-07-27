@@ -12,10 +12,7 @@ onBootstrap((e) => {
       // Find all open polls that have expired
       const expiredPolls = $app.findRecordsByFilter(
         "polls",
-        `status = "open" && end_time <= "${now
-          .toISOString()
-          .replace("T", " ")
-          .replace(/\.\d+Z$/, "Z")}"`
+        `status = "open" && end_time <= "${now.toISOString()}"`
       );
 
       console.log(`Found ${expiredPolls.length} expired polls to process`);

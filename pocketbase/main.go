@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
@@ -17,13 +16,15 @@ import (
 	"github.com/pocketbase/pocketbase/tools/hook"
 )
 
-var dbConnect core.DBConnectFunc;
+// var dbConnect core.DBConnectFunc;
 
 func main() {
-	app := pocketbase.NewWithConfig(pocketbase.Config{
-		DefaultQueryTimeout: 120 * time.Second,
-		DBConnect:           dbConnect,
-	})
+	// app := pocketbase.NewWithConfig(pocketbase.Config{
+	// 	DefaultQueryTimeout: 120 * time.Second,
+	// 	DBConnect:           dbConnect,
+	// })
+
+	app := pocketbase.New()
 
 	// ---------------------------------------------------------------
 	// Optional plugin flags:
@@ -129,6 +130,10 @@ func main() {
 
 // the default pb_public dir location is relative to the executable
 func defaultPublicDir() string {
+	if os.Getenv("PB_PUBLIC_DIR") != "" {
+		return os.Getenv("PB_PUBLIC_DIR")
+	}
+
 	if strings.HasPrefix(os.Args[0], os.TempDir()) {
 		// most likely ran with go run
 		return "./pb_public"

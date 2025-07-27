@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/pocketbase/dbx v1.11.0
-	github.com/pocketbase/pocketbase v0.29.0
+	github.com/pocketbase/pocketbase v0.28.4
 )
 
 require (
@@ -27,6 +27,10 @@ require (
 	github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.7.4 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
@@ -47,3 +51,5 @@ require (
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.38.0 // indirect
 )
+
+replace github.com/pocketbase/pocketbase v0.28.4 => github.com/cobeo2004/pocketbase v0.28.4-pg
